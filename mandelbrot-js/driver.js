@@ -5,10 +5,8 @@
 	//Wait for Window load to build system
 	$(window).on("load", ()=>{
 		mandelbrot = new Mandelbrot(window.canvas2D);
-        setTimeout(()=>{
-            console.log("Wahoo");
-            mandelbrot.render();
-        }, 10);
-		$(window).on('resize', ()=>{mandelbrot.render();});
-	});
+                mandelbrot.render();
+                let last = 0;
+                $(window).on('resize', ()=>{if(new Date().getTime()-last > 1000){last=new Date().getTime(); mandelbrot.render();}});
+        });
 })();

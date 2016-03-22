@@ -27,14 +27,14 @@ class Canvas2D {
 
 		//Positioning and Scaling
 		this.rect = this.canvas.getBoundingClientRect();
-		$(window).on('resize', function (event) {
+		$(window).on('resize', event => {
 			this.rect = this.canvas.getBoundingClientRect();
 			this.canvas.width = this.rect.width;
 			this.canvas.height = this.rect.height;
 			this.width = this.rect.width;
 			this.height = this.rect.height;
 			this.buffer = this.context.createImageData(this.width, this.height);
-		}.bind(this));
+		});
 		this.canvas.width = this.rect.width;
 		this.canvas.height = this.rect.height;
 		this.width = this.rect.width;
@@ -60,7 +60,7 @@ class Canvas2D {
 		// }.bind(this),0);
 	}
 
-	drawPixelToBuffer(pixel) {
+	drawBufferedPixel(pixel) {
 		var index = 4 * (pixel.x + pixel.y * this.width) - 4;
 		this.buffer.data[index] = pixel.r;
 		this.buffer.data[index + 1] = pixel.g;
@@ -99,42 +99,77 @@ class Mandelbrot {
         this.scale = 1.0;
         this.xDelta = 0; //Alignment is bad with scaling need to do position transform first
         this.yDelta = 0; //
+        this.cX = 0;
+        this.cY = 0;
+        $(this.canvas2d.canvas).on('click', event => this.click(event));
+    }
+
+    click(event) {
+        console.log(event.clientX, event.clientY);
+        this.xDelta = this.xDelta + (this.width / 2 - event.clientX) / this.scale;
+        this.yDelta = this.yDelta + (this.height / 2 - event.clientY) / this.scale;
+        this.scale = this.scale * 2;
+
+        console.log(event.clientX, event.clientY, this.cX, this.cY, this.xDelta, this.yDelta, this.scale);
+        this.render();
     }
 
     render() {
+        //Put this in a WebWorker
         this.canvas2d.clearBuffer();
+        const scale = this.scale;
         let width = this.width = this.canvas2d.width;
         let height = this.height = this.canvas2d.height;
+        this.cX = this.width / 2;
+        this.cY = this.height / 2;
+        //Transform from Center
+        // if(this.cX == 0 || this.cY == 0){
+        //     this.cX = this.width/2;
+        //     this.cY = this.height/2;
+        // }
+        // let cX = this.cX = this.cX-this.xDelta/scale;
+        // let cY = this.cY = this.cY-this.yDelta/scale;
         let xDelta = this.xDelta;
         let yDelta = this.yDelta;
 
-        let scale = this.scale;
+        //const aspect   = width/height;               //Unused for now
+        let widthScalar = 3.5; // Always fit width
+        let heightScalar = widthScalar * height / width; //
 
-        let widthScalar = 3.5; //Need to modify this to be dynamic and not cause stretching
-        let heightScalar = 2; //
-
-        widthScalar = widthScalar / this.scale;
+        widthScalar = widthScalar / this.scale; //Consider integration with previous step
         heightScalar = heightScalar / this.scale;
 
-        for (let Px = 0; Px < width; Px++) {
-            for (let Py = 0; Py < height; Py++) {
-                let x0 = widthScalar / width * (Px + xDelta) - widthScalar / 1.4; //These need work not generalized yet
-                let y0 = heightScalar / height * (Py + yDelta) - heightScalar / 2; //
-                let x = 0.0;
-                let y = 0.0;
-                let iteration = 0;
-                while (x * x + y * y < 4 /* 2*2 */ && iteration < this.iterations) {
-                    let xtemp = x * x - y * y + x0;
-                    y = 2 * x * y + y0;
-                    x = xtemp;
-                    iteration++;
-                }
-                //color = palette[iteration] //Implement Histogram based color
-                const intensity = iteration == 255 ? 0 : iteration;
+        console.log(this.scale);
 
-                this.canvas2d.drawPixel({ x: Px, y: Py, r: 0, g: intensity * 0.3, b: intensity, a: 255 });
-            }
-        };
+        setTimeout(() => {
+            let Px = 0;
+            let loop = setInterval(() => {
+                for (let Py = 0; Py < height; Py++) {
+                    let Tx = Px - xDelta * scale;
+                    let Ty = Py - yDelta * scale;
+                    let x0 = widthScalar / width * Tx - widthScalar / 1.4; //These need work not generalized yet
+                    let y0 = heightScalar / height * Ty - heightScalar / 2; //
+                    let x = 0.0;
+                    let y = 0.0;
+                    let iteration = 0;
+                    while (x * x + y * y < 4 /* 2*2 */ && iteration < this.iterations) {
+                        let xtemp = x * x - y * y + x0;
+                        y = 2 * x * y + y0;
+                        x = xtemp;
+                        iteration++;
+                    }
+                    //color = palette[iteration] //Implement Histogram based color
+                    const intensity = iteration == 255 ? 0 : iteration;
+
+                    this.canvas2d.drawBufferedPixel({ x: Px, y: Py, r: 0, g: intensity * 0.3, b: intensity, a: 255 });
+                }
+                this.canvas2d.flushBuffer();
+                Px += 1;
+                if (Px >= width) {
+                    clearInterval(loop);
+                }
+            }, 0);
+        }, 10);
     }
 }
 (function () {
@@ -144,12 +179,12 @@ class Mandelbrot {
 	//Wait for Window load to build system
 	$(window).on("load", () => {
 		mandelbrot = new Mandelbrot(window.canvas2D);
-		setTimeout(() => {
-			console.log("Wahoo");
-			mandelbrot.render();
-		}, 10);
+		mandelbrot.render();
+		let last = 0;
 		$(window).on('resize', () => {
-			mandelbrot.render();
+			if (new Date().getTime() - last > 1000) {
+				last = new Date().getTime();mandelbrot.render();
+			}
 		});
 	});
 })();

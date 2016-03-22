@@ -20,7 +20,7 @@ CLOSURE_CONF = --language_in=ECMASCRIPT6
 
 es6:
 	$(ES6C) $(LIBS) $(DRIVER) > precomp1.js
-	cat precomp1.js | perl -pe 's/(?!^)\"use strict\"; //g' > precomp2.js
+	#cat precomp1.js | perl -pe 's/(?!^)\"use strict\"; //g' > precomp2.js
 
 closure: es6
 	echo "This is running"

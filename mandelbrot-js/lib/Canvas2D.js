@@ -27,14 +27,14 @@ class Canvas2D{
 
 		//Positioning and Scaling
 		this.rect = this.canvas.getBoundingClientRect();
-		$(window).on('resize', function(event){
+		$(window).on('resize', (event) => {
 			this.rect = this.canvas.getBoundingClientRect();
 			this.canvas.width = this.rect.width;
 			this.canvas.height = this.rect.height;
 			this.width = this.rect.width;
 			this.height = this.rect.height;
 			this.buffer = this.context.createImageData(this.width, this.height);
-		}.bind(this));
+		});
 		this.canvas.width = this.rect.width;
 		this.canvas.height = this.rect.height;
 		this.width = this.rect.width;
@@ -60,7 +60,7 @@ class Canvas2D{
 		// }.bind(this),0);
 	}
 
-	drawPixelToBuffer(pixel){
+	drawBufferedPixel(pixel){
 		var index = 4 * (pixel.x + pixel.y * this.width) - 4;
 		this.buffer.data[index] = pixel.r;
 		this.buffer.data[index+1] = pixel.g;
