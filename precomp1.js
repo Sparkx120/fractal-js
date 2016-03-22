@@ -101,7 +101,7 @@ class Mandelbrot {
         this.yDelta = 0; //
         this.cX = 0;
         this.cY = 0;
-        this.parallelism = 8;
+        this.parallelism = 4;
         $(this.canvas2d.canvas).on('click', event => this.click(event));
     }
 
@@ -116,7 +116,9 @@ class Mandelbrot {
     }
 
     render() {
-        if (window.Worker) {
+        //this.renderDirect(); //Disable Webworkers for now
+
+        if (false && window.Worker) {
             this.canvas2d.clearBuffer();
             const scale = this.scale;
             let width = this.width = this.canvas2d.width;
@@ -148,16 +150,17 @@ class Mandelbrot {
                     xSkip: xSkip,
                     xInit: i
                 });
+                var This = this;
                 workers[i].onmessage = function (e) {
-                    e.data.line.map((intensity, idx) => {
+                    e.data.line.map(function (intensity, idx) {
                         //console.log(intensity);
-                        this.canvas2d.drawBufferedPixel({ x: e.data.Px, y: idx, r: 255 * intensity * 0.2, g: 255 * intensity * 0.5, b: 255 * intensity, a: 255 });
+                        This.canvas2d.drawBufferedPixel({ x: e.data.Px, y: idx, r: 255 * intensity * 0.2, g: 255 * intensity * 0.5, b: 255 * intensity, a: 255 });
                     });
-                    this.canvas2d.flushBuffer();
+                    This.canvas2d.flushBuffer();
                     if (e.data.Px >= width - (xSkip - i)) {
                         workers[i].terminate();
                     }
-                }.bind(this);
+                };
             }
         } else {
             this.renderDirect();
