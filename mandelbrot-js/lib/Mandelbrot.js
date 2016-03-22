@@ -16,11 +16,12 @@ class Mandelbrot {
         this.yDelta      = 0; //
         this.cX          = 0;
         this.cY          = 0;
+        this.parallelism = 8;
         $(this.canvas2d.canvas).on('click', (event) => this.click(event));
     }
     
     click(event){
-        console.log(event.clientX, event.clientY);
+        //console.log(event.clientX, event.clientY);
         this.xDelta = this.xDelta + ((this.width/2)-event.clientX)/this.scale;
         this.yDelta = this.yDelta + ((this.height/2)-event.clientY)/this.scale;
         this.scale = this.scale*2;
@@ -29,7 +30,58 @@ class Mandelbrot {
         this.render();
     }
     
-    render(){ //Put this in a WebWorker
+    
+    render(){
+        if(window.Worker){ 
+            this.canvas2d.clearBuffer();
+            const scale      = this.scale 
+            let width        = this.width  = this.canvas2d.width;
+            let height       = this.height = this.canvas2d.height;
+            this.cX = this.width/2;
+            this.cY = this.height/2;
+            //Transform from Center
+            // if(this.cX == 0 || this.cY == 0){
+            //     this.cX = this.width/2;
+            //     this.cY = this.height/2;
+            // }
+            // let cX = this.cX = this.cX-this.xDelta/scale;
+            // let cY = this.cY = this.cY-this.yDelta/scale;
+            let xDelta = this.xDelta;
+            let yDelta = this.yDelta;
+            let xSkip  = this.parallelism; //For parallelization;
+            let workers = [];
+            console.log(xSkip);
+
+            for(var i=0; i<xSkip; i++){
+                workers[i] = new Worker('./js/mandelbrot-worker.js');
+                workers[i].postMessage({
+                    iterations: this.iterations,
+                    scale: scale,
+                    width: width,
+                    height: height,
+                    xDelta: xDelta,
+                    yDelta: yDelta,
+                    xSkip: xSkip,
+                    xInit: i
+                });
+                workers[i].onmessage = function(e){
+                    e.data.line.map((intensity,idx)=>{
+                        //console.log(intensity);
+                        this.canvas2d.drawBufferedPixel({x:e.data.Px,y:idx,r:255*intensity*0.2,g:255*intensity*0.5,b:255*intensity,a:255}); 
+                    });
+                    this.canvas2d.flushBuffer();
+                    if(e.data.Px >= width-(xSkip-i)){
+                        workers[i].terminate();
+                    }
+                }.bind(this);
+            }
+        }
+        else{
+            this.renderDirect();
+        }
+    }
+    
+    renderDirect(){
         this.canvas2d.clearBuffer();
         const scale      = this.scale 
 		let width        = this.width  = this.canvas2d.width;
@@ -53,7 +105,7 @@ class Mandelbrot {
         widthScalar  = widthScalar / this.scale; //Consider integration with previous step
         heightScalar = heightScalar / this.scale;
         
-        console.log(this.scale);
+        //console.log(this.scale);
         
         setTimeout(()=>{
             let Px = 0;
@@ -73,9 +125,25 @@ class Mandelbrot {
                         iteration ++;
                     }
                     //color = palette[iteration] //Implement Histogram based color
-                    const intensity = (iteration==255) ? 0 : iteration;
+                    const intensity = ((iteration==255) ? 0 : iteration)/255;
+                    //ALL CHANNELS
+                    //this.canvas2d.drawBufferedPixel({x:Px,y:Py,r:255*intensity,g:255*intensity,b:255*intensity,a:255});
                     
-                    this.canvas2d.drawBufferedPixel({x:Px,y:Py,r:0,g:intensity*0.3,b:intensity,a:255});
+                    //BLUE OPTIMIZED
+                    this.canvas2d.drawBufferedPixel({x:Px,y:Py,r:255*intensity*0.2,g:255*intensity*0.5,b:255*intensity,a:255});
+
+                    //ATTEMPTED HYBRID
+                    // if(intensity>0.5)
+                    // {
+                    //     this.canvas2d.drawBufferedPixel({x:Px,y:Py,r:255*intensity*0.8,g:255*intensity*0.8,b:255*intensity,a:255});
+                    // }
+                    // else
+                    // {
+                    //     this.canvas2d.drawBufferedPixel({x:Px,y:Py,r:255*intensity*0.2,g:255*intensity*0.5,b:255*intensity,a:255});
+                    // }
+                    
+                    
+                    
                 }
                 this.canvas2d.flushBuffer();
                 Px +=1;
@@ -83,6 +151,6 @@ class Mandelbrot {
                     clearInterval(loop);
                 }
             },0);
-        }, 10);        
+        }, 10);
     }
 }
