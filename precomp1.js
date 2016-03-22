@@ -116,9 +116,9 @@ class Mandelbrot {
     }
 
     render() {
-        //this.renderDirect(); //Disable Webworkers for now
+        //Disable Webworkers for now
 
-        if (false && window.Worker) {
+        if (window.Worker) {
             this.canvas2d.clearBuffer();
             const scale = this.scale;
             let width = this.width = this.canvas2d.width;

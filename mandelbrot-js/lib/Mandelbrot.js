@@ -34,7 +34,7 @@ class Mandelbrot {
     render(){
         //Disable Webworkers for now
         
-        if(false && window.Worker){
+        if(window.Worker){
             this.canvas2d.clearBuffer();
             const scale      = this.scale 
             let width        = this.width  = this.canvas2d.width;

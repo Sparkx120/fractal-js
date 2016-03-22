@@ -18,12 +18,14 @@ ES6C = babel
 
 CLOSURE_CONF = --language_in=ECMASCRIPT6
 
+all: build
+
 es6:
 	$(ES6C) $(LIBS) $(DRIVER) > precomp1.js
-	#cat precomp1.js | perl -pe 's/(?!^)\"use strict\"; //g' > precomp2.js
+# cat precomp1.js | perl -pe 's/(?!^)\"use strict\"; //g' > precomp2.js
 
 closure: es6
-	echo "This is running"
+	echo "Closure Compiling (Currently compiling native es6)"
 	java -jar ./closure/compiler.jar $(CLOSURE_CONF) --js precomp1.js --js_output_file ./js/Mandelbrot.js 2>/dev/null
 
 build: closure
