@@ -11,7 +11,7 @@ ROOT = ./mandelbrot-js
 LIBD = $(ROOT)/lib
 
 STATIC_LIBS = $(ROOT)/static/Math3D.js
-LIBS = $(LIBD)/Canvas2D.js $(LIBD)/Mandelbrot.js
+LIBS = $(LIBD)/Canvas2D.js $(LIBD)/Mandelbrot.js $(LIBD)/SyntheticWorker.js
 DRIVER = $(ROOT)/driver.js
 
 ES6C = babel
@@ -26,7 +26,7 @@ es6:
 
 closure: es6
 	echo "Closure Compiling (Currently compiling native es6)"
-	java -jar ./closure/compiler.jar $(CLOSURE_CONF) --js precomp1.js --js_output_file ./js/Mandelbrot.js 2>/dev/null
+	java -jar ./closure/compiler.jar $(CLOSURE_CONF) --js precomp1.js --js_output_file ./js/Mandelbrot.js
 
 build: closure
 
