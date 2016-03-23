@@ -85,7 +85,7 @@ class Mandelbrot {
                         //console.log(intensity);
                         this.canvas2d.drawBufferedPixel(this._pixelShader(e.data.Px, idx, intensity, this.shader)); 
                     });
-                    if(e.data.Px % (width/100) <= 1)
+                    if(e.data.Px % (width/100) <= 1 || e.data.Px > width-xSkip-1)
                         this.canvas2d.flushBuffer();
                     if(e.data.Px >= width-(xSkip-i)){
                         workers[i].terminate();
