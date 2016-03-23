@@ -10,8 +10,9 @@
 class Mandelbrot {
     constructor(canvas2D){
         this.canvas2d      = canvas2D;
-        this.iterations    = 255;
+        this.iterations    = 256;
         this.scale         = 1.0;
+        this.superscaling  = 1.0; //Not Implemented yet
         this.xDelta        = 0;
         this.yDelta        = 0;
         this.cX            = 0;
@@ -53,30 +54,6 @@ class Mandelbrot {
             let yDelta  = this.yDelta;
             let xSkip   = this.parallelism; //For parallelization;
             let workers = [];
-
-            // for(var i=0; i<xSkip; i++){
-            //     workers[i] = new Worker('./js/mandelbrot-worker.js');
-            //     workers[i].postMessage({
-            //         iterations: this.iterations,
-            //         scale: scale,
-            //         width: width,
-            //         height: height,
-            //         xDelta: xDelta,
-            //         yDelta: yDelta,
-            //         xSkip: xSkip,
-            //         xInit: i
-            //     });
-            //     workers[i].onmessage = (e)=>{
-            //         e.data.line.map((intensity,idx)=>{
-            //             //console.log(intensity);
-            //             this.canvas2d.drawBufferedPixel(this._pixelShader(e.data.Px, idx, intensity, this.shader)); 
-            //         });
-            //         this.canvas2d.flushBuffer();
-            //         if(e.data.Px >= width-(xSkip-i)){
-            //             workers[i].terminate();
-            //         }
-            //     }
-            // }
             
             for(var i=0; i<xSkip; i++){
                 workers[i] = new SyntheticWorker(this._baseRender, (e)=>{
@@ -176,7 +153,7 @@ class Mandelbrot {
                     iteration ++;
                 }
                 
-                const intensity = ((iteration==255) ? 0 : iteration)/255;
+                const intensity = ((iteration==iterations) ? 0 : iteration)/iterations;
                 line.push(intensity);
             }
             if(cb)
