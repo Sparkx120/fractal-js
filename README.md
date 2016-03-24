@@ -1,6 +1,6 @@
 #Mandelbrot-JS v0.1.5
 A Mandelbrot Explorer written in Javascript (es2015) and HTML5 Canvas. It has been tested on Edge, Chrome, and Firefox.
-(Note firefox only works with the the closure compiled version)
+(Note: firefox only works with the the closure compiled version)(Note: Edge currently renders the fastest)
 
 ![Mandelbrot-JS Screenshot](https://raw.githubusercontent.com/Sparkx120/mandelbrot-js/master/screenshot.png) 
 
@@ -24,7 +24,7 @@ make build
 ```
 
 ##Licenses
-My code is MIT Liscense. 
+My code is MIT Liscense.
 
 Included Libraries
 - Closure Compiler: Apache.
