@@ -1,3 +1,29 @@
-#Mandelbrot-JS
-This is the beginnings of my Mandelbrot fractal explorer.
-It is MIT Liscensed. Note I have included a copy of Google's Closure compiler.
+#Mandelbrot-JS v0.1.5
+A Mandelbrot Explorer written in Javascript (es2015) and HTML5 Canvas. It has been tested on Edge, Chrome, and Firefox.
+(Note firefox only works with the the closure compiled version)
+
+###Dependencies
+- Java 8.x  (for Closure Compile)
+- Babel-CLI (NPM)
+- gnu make
+
+###Make
+The build process has only been tested under Windows 10 with a cygwin environment. It should work on Linux.
+There are two modes for making. There is dev and build. Dev does not closure compile the code whereas build does.
+
+Dev:
+```bash
+make
+```
+
+Build:
+```bash
+make build
+```
+
+##Licenses
+My code is MIT Liscense. 
+
+Included Libraries
+- Closure Compiler: Apache.
+- jQuery: MIT
