@@ -9,7 +9,7 @@
  * @license MIT
  */
 class Canvas2D{
-	constructor(){
+	constructor(config){
 		// //Create the Canvas and Deploy it
 		this.container = document.createElement('div');
 		this.canvas = document.createElement('canvas');
@@ -23,6 +23,11 @@ class Canvas2D{
 		this.container.style.position = "relative";
 		this.context = this.canvas.getContext('2d');
 		this.container.appendChild(this.canvas);
+        this.supersampling = 1.0;
+        
+        if(config && config.supersampling)
+            this.supersampling = config.supersampling;
+        
 		document.body.appendChild(this.container);
 
 		//Positioning and Scaling
@@ -33,7 +38,10 @@ class Canvas2D{
 			this.canvas.height = this.rect.height;
 			this.width = this.rect.width;
 			this.height = this.rect.height;
-			this.buffer = this.context.createImageData(this.width, this.height);
+			this.buffer = this.context.createImageData(this.width*this.supersampling, this.height*this.supersampling);
+			if(this.resizeCB){
+				this.resizeCB();
+			}
 		});
 		this.canvas.width = this.rect.width;
 		this.canvas.height = this.rect.height;
@@ -44,6 +52,25 @@ class Canvas2D{
 		this.buffer = this.context.createImageData(this.width, this.height);
 		// this.pixelData = this.pixelImageData.data
 	}
+    
+    setSupersampling(supersampling){
+        this.supersampling = supersampling;
+        this.rect = this.canvas.getBoundingClientRect();
+        this.canvas.width = this.rect.width;
+        this.canvas.height = this.rect.height;
+        this.width = this.rect.width;
+        this.height = this.rect.height;
+        this.buffer = this.context.createImageData(this.width*this.supersampling, this.height*this.supersampling);
+        return this;
+    }
+    
+    getWidth(){
+        return this.width*this.supersampling;
+    }
+    
+    getHeight(){
+        return this.height*this.supersampling;
+    }
 
 	/**
 	 * Draws a pixel to this Canvas. Note that RGBA are between 0 and 255
@@ -61,7 +88,7 @@ class Canvas2D{
 	}
 
 	drawBufferedPixel(pixel){
-		var index = 4 * (pixel.x + pixel.y * this.width) - 4;
+		var index = 4 * (pixel.x + pixel.y * this.width*this.supersampling) - 4;
 		this.buffer.data[index] = pixel.r;
 		this.buffer.data[index+1] = pixel.g;
 		this.buffer.data[index+2] = pixel.b;
@@ -69,7 +96,10 @@ class Canvas2D{
 	}
 
 	flushBuffer(){
-		this.context.putImageData(this.buffer, 0,0);
+        if(this.supersampling > 1)
+		    this.context.putImageData(this.buffer, 0,0,0,0,this.width,this.height); //TODO Not functional
+        else
+            this.context.putImageData(this.buffer, 0,0);
 	}
 
 	clearBuffer(){

@@ -4,9 +4,10 @@
 
 	//Wait for Window load to build system
 	$(window).on("load", ()=>{
-		mandelbrot = new Mandelbrot(window.canvas2D);
+		let mandelbrot = new Mandelbrot(window.canvas2D);
                 mandelbrot.render();
                 let last = 0;
-                $(window).on('resize', ()=>{if(new Date().getTime()-last > 1000){last=new Date().getTime(); mandelbrot.render();}});
+		let cb = ()=>{if(new Date().getTime()-last > 1000){last=new Date().getTime(); mandelbrot.render();}};
+		canvas2D.resizeCB = cb;
         });
 })();
