@@ -14,7 +14,7 @@ class Mandelbrot {
 	 * @param {Canvas2D} canvas2D
 	 */
     constructor(canvas2D){
-        this.iterations    = 512;
+        this.iterations    = 256;
         this.scale         = 1.0;
         this.supersampling = 1.0; // Not ready
         this.xDelta        = 0;
