@@ -19,7 +19,7 @@ class Mandelbrot {
         this.supersampling = 1.0; // Not ready
         this.xDelta        = 0;
         this.yDelta        = 0;
-        this.parallelism   = 2;
+        this.parallelism   = 4;
 		this.heightScalar  = null;
 
         this.canvas2d      = canvas2D.setSupersampling(this.supersampling);
@@ -117,7 +117,6 @@ class Mandelbrot {
         rConfig.xInit = 0;
         
         const conf = { data: rConfig };
-        
         let timeout = new Date().getTime();
         this._baseRender(conf, (toRender)=>{
             toRender.line.map((intensity,idx)=>{
@@ -128,7 +127,7 @@ class Mandelbrot {
                 timeout = new Date().getTime();
                 setTimeout(()=>{
                     this.canvas2d.flushBuffer();
-                }, 50);
+                }, 0);
             }
         });
     }

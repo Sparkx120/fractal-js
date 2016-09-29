@@ -50,6 +50,7 @@ class Canvas2D{
 		//Persistant Pixel Image Data Object
 		this.pixelImageData = this.context.createImageData(1,1);
 		this.buffer = this.context.createImageData(this.width, this.height);
+		console.log(this);
 		// this.pixelData = this.pixelImageData.data
 	}
     
