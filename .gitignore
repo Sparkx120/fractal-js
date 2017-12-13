@@ -1,3 +1,4 @@
 node_modules/
+npm-debug.log
 precomp1.js
 precomp2.js
