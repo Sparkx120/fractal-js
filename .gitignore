@@ -1,4 +1,5 @@
 node_modules/
 npm-debug.log
+mandelbrot.js
 precomp1.js
 precomp2.js
