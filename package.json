@@ -4,7 +4,7 @@
   "description": "A Fractal Rendering Library",
   "main": "index.js",
   "scripts": {
-    "build-static": "browserify index.js -o mandelbrot.js",
+    "build-static": "browserify index.js -o fractal.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

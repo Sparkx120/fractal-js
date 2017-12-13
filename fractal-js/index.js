@@ -11,6 +11,10 @@ export default function init(canvasID){
 		const mandlBtn = document.getElementById("Mandelbrot");
 		const juliaBtn = document.getElementById("Julia");
 		let fractal = new Fractal(canvas2D);
+		
+		// fractal.type = fractal.types.julia;
+		// fractal.c = {R:0.285, i:0.01}
+		
 		fractal.render();
 		let last = 0;
 		let cb = ()=>{if(new Date().getTime()-last > 1000){last=new Date().getTime(); fractal.render();}};
