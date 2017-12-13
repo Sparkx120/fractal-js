@@ -2,7 +2,7 @@
 A Mandelbrot Explorer written in Javascript (es2015) using the HTML5 Canvas. It has been tested on Edge, Chrome, and Firefox.
 ~~(Note: firefox only works with the the closure compiled version)(Note: Edge currently renders the fastest)~~
 
-![Mandelbrot-JS Screenshot](https://raw.githubusercontent.com/Sparkx120/mandelbrot-js/master/screenshot.png) 
+![Fractal-JS Screenshot](https://raw.githubusercontent.com/Sparkx120/mandelbrot-js/master/screenshot.png) ![Fractal-JS Screenshot2](https://raw.githubusercontent.com/Sparkx120/mandelbrot-js/master/screenshot2.png) 
 
 ### Dependencies
 - ~~Java 8.x  (for Closure Compile)~~
