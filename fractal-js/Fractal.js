@@ -17,17 +17,12 @@ export default class Mandelbrot {
 	 * @param {Canvas2D} canvas2D
 	 */
     constructor(canvas2D){
-        this.iterations    = 256;
-        this.scale         = 0.5;
-        this.supersampling = 1.0; // Not ready
-        this.xDelta        = 0;
-        this.yDelta        = 0;
-        this.parallelism   = 2;
-		this.heightScalar  = null;
+
+        this.initDefaults();
 
         this.types         = {
-            mandelbrot: 'MANDELBROOT',
-            julia:      'JULIA'
+            mandelbrot: 'Mandelbrot',
+            julia:      'Julia'
         }
 
         this.type = this.types.mandelbrot;
@@ -35,11 +30,6 @@ export default class Mandelbrot {
         this.z = {
             //TODO
         }
-
-        this.c = {
-            R: 0,
-            i: 0.8
-        };
 
         this.canvas2d      = canvas2D.setSupersampling(this.supersampling);
 
@@ -55,7 +45,9 @@ export default class Mandelbrot {
         this.renderParallel = true;
         this.renderTerm = false; //Terminate Rendering Early
         
-		this.renderThreads = [];
+        this.renderThreads = [];
+        
+        this.drawControls();
         
         //TODO Switch to non jquery listeners
         this.canvas2d.canvas.addEventListener('mousedown', (event) => this._mousedown(event), false);
@@ -63,6 +55,60 @@ export default class Mandelbrot {
         //$(this.canvas2d.canvas).on('mousedown' , (event) => this._mousedown(event));
 		//$(this.canvas2d.canvas).on('mouseup'   , (event) => this._mouseup(event));
     }
+
+    initDefaults(){
+        this.iterations    = 256;
+        this.scale         = 0.5;
+        this.supersampling = 1.0; //Need to adapt screen click coordinates still
+        this.xDelta        = 0;
+        this.yDelta        = 0;
+        this.parallelism   = 2;
+        this.heightScalar  = null;
+        
+        this.c = {
+            R: 0,
+            i: 0.8
+        };
+    }
+
+    switchFractal(){
+        switch(this.type){
+            case this.types.mandelbrot:
+                this.type = this.types.julia;
+                this.fractalBtn.innerHTML = "Mandelbrot"
+                this.initDefaults();
+                break;
+            case this.types.julia:
+                this.type = this.types.mandelbrot;
+                this.fractalBtn.innerHTML = "Julia"
+                this.initDefaults();
+                break;
+        }
+        this.render();
+    }
+
+    /**
+	 * Draw Controls over the render
+	 * 
+	 * TODO Consider adding this to Canvas 2D and making it configurable
+	 * for my other projects
+	 */
+	drawControls(){
+		this.controlContainer = document.createElement("div");
+		this.controlContainer.style.position = "absolute";
+		this.controlContainer.style.right = "0";
+		this.controlContainer.style.top = "0";
+		this.controlContainer.style.zindex = "100"
+
+		this.fractalBtn = document.createElement("button");
+		this.fractalBtn.innerHTML = "Julia"
+		this.fractalBtn.onclick = ()=>this.switchFractal();
+		this.controlContainer.appendChild(this.fractalBtn);
+
+		if(this.canvas2d.container){
+			this.canvas2d.container.appendChild(this.controlContainer);
+		}
+	}
     
 	/**
 	 * Public render method.

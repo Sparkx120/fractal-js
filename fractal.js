@@ -1,4 +1,205 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Canvas Wrapper object to handle pixel level drawing on the HTML5 Canvas as well as manage the canvas
+ * Automatically deploys a canvas to the body (for now)
+ * 
+ * (Now in ES6)
+ * 
+ * @author  James Wake (SparkX120)
+ * @version 0.0.6 (2017/12)
+ * @license MIT
+ */
+var Canvas2D = function () {
+	function Canvas2D(config) {
+		var _this = this;
+
+		_classCallCheck(this, Canvas2D);
+
+		//Create the Canvas and Deploy it
+		this.container = document.createElement('div');
+		this.canvas = document.createElement('canvas');
+		this.bufferedImage = document.createElement('canvas');
+
+		//Get Supersampling and Style configurations
+		if (config && config.supersampling) this.supersampling = config.supersampling;else this.supersampling = 1.0;
+
+		if (config && config.canvasStyle) {
+			for (var i in config.canvasStyle) {
+				this.canvas.style[i] = config.canvasStyle[i];
+			}
+		}
+		if (config && config.containerStyle) {
+			for (var _i in config.containerStyle) {
+				this.container.style[_i] = config.containerStyle[_i];
+			}
+		} else {
+			this.container.style.margin = "0%";
+			this.container.style.width = "100vw";
+			this.container.style.height = "100vh";
+			this.container.style.position = "relative";
+		}
+
+		//Setup Contexts
+		this.context = this.canvas.getContext('2d');
+		this.bufferedContext = this.bufferedImage.getContext('2d');
+
+		//Compose the container and put into the document
+		this.container.appendChild(this.canvas);
+		document.body.appendChild(this.container);
+
+		//Positioning and Scaling
+		this.rect = this.container.getBoundingClientRect();
+		window.addEventListener('resize', function (event) {
+			_this.setSupersampling(_this.supersampling);
+			if (_this.resizeCB) {
+				_this.resizeCB();
+			}
+		});
+		window.addEventListener('load', function (event) {
+			_this.setSupersampling(_this.supersampling);
+			if (_this.resizeCB) {
+				_this.resizeCB();
+			}
+		});
+		this.canvas.width = this.rect.width;
+		this.canvas.height = this.rect.height;
+		this.width = this.rect.width;
+		this.height = this.rect.height;
+
+		//Persistant Pixel Image Data Object
+		this.pixelImageData = this.context.createImageData(1, 1);
+		this.buffer = this.context.createImageData(this.width, this.height);
+	}
+
+	/**
+  * Set a supersampling factor for the buffered canvas (access super sample width and height via getWidth and getHeight)
+  * @param {*} supersampling - The supersampling factor to use
+  */
+
+
+	_createClass(Canvas2D, [{
+		key: 'setSupersampling',
+		value: function setSupersampling(supersampling) {
+			//Compute Dimensions to use
+			this.supersampling = supersampling;
+			this.rect = this.canvas.getBoundingClientRect();
+			this.canvas.width = Math.floor(this.rect.width);
+			this.canvas.height = Math.floor(this.rect.height);
+			this.width = Math.floor(this.rect.width);
+			this.height = Math.floor(this.rect.height);
+			this.context.scale(1 / supersampling, 1 / supersampling);
+
+			//Setup the supersampled ArrayBuffer
+			this.buffer = this.context.createImageData(this.getWidth(), this.getHeight());
+			this.bufferedImage.width = this.getWidth();
+			this.bufferedImage.height = this.getHeight();
+			return this;
+		}
+
+		/**
+   * Get the width of canvas with supersampling
+   * @returns the width with supersampling
+   */
+
+	}, {
+		key: 'getWidth',
+		value: function getWidth() {
+			return Math.ceil(this.width * this.supersampling);
+		}
+
+		/**
+   * Get height of canvas with supersampling
+   * @returns the height with supersampling
+   */
+
+	}, {
+		key: 'getHeight',
+		value: function getHeight() {
+			return Math.ceil(this.height * this.supersampling);
+		}
+
+		/**
+   * Draws a pixel to this Canvas. Note that RGBA are between 0 and 255
+   * @param  {{x: Number, y: Number, r: Number, g: Number, b: Number, a: Number}} pixel The Pixel to draw
+   */
+
+	}, {
+		key: 'drawPixel',
+		value: function drawPixel(pixel) {
+			this.pixelImageData.data[0] = pixel.r;
+			this.pixelImageData.data[1] = pixel.g;
+			this.pixelImageData.data[2] = pixel.b;
+			this.pixelImageData.data[3] = pixel.a;
+			this.context.putImageData(this.pixelImageData, pixel.x / this.supersampling, pixel.y / this.supersampling);
+		}
+
+		/**
+   * Draws a pixel to the supersampled ArrayBuffer
+   * @param {*} pixel - The pixel to draw
+   */
+
+	}, {
+		key: 'drawBufferedPixel',
+		value: function drawBufferedPixel(pixel) {
+			var index = 4 * (pixel.x + pixel.y * this.getWidth()) - 4;
+			this.buffer.data[index] = pixel.r;
+			this.buffer.data[index + 1] = pixel.g;
+			this.buffer.data[index + 2] = pixel.b;
+			this.buffer.data[index + 3] = pixel.a;
+		}
+
+		/**
+   * Flushes the supersampled ArrayBuffer to the rendered canvas' drawing context
+   */
+
+	}, {
+		key: 'flushBuffer',
+		value: function flushBuffer() {
+			this.bufferedContext.putImageData(this.buffer, 0, 0);
+			this.context.drawImage(this.bufferedImage, 0, 0); //Still not working
+		}
+
+		/**
+   * Clears the supersampled ArrayBuffer
+   */
+
+	}, {
+		key: 'clearBuffer',
+		value: function clearBuffer() {
+			this.buffer = this.context.createImageData(this.getWidth(), this.getHeight());
+		}
+
+		/**
+   * Draws a Line on the canvas directly between 2 points
+   * @param {{x1,x2,y1,y2}} line 
+   */
+
+	}, {
+		key: 'drawLine',
+		value: function drawLine(line) {
+			this.context.beginPath();
+			this.context.moveTo(line.x1, line.y1);
+			this.context.lineTo(line.x2, line.y2);
+			this.context.stroke();
+		}
+	}]);
+
+	return Canvas2D;
+}();
+
+exports.default = Canvas2D;
+
+},{}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -39,28 +240,17 @@ var Mandelbrot = function () {
 
         _classCallCheck(this, Mandelbrot);
 
-        this.iterations = 256;
-        this.scale = 0.5;
-        this.supersampling = 1.0; // Not ready
-        this.xDelta = 0;
-        this.yDelta = 0;
-        this.parallelism = 2;
-        this.heightScalar = null;
+        this.initDefaults();
 
         this.types = {
-            mandelbrot: 'MANDELBROOT',
-            julia: 'JULIA'
+            mandelbrot: 'Mandelbrot',
+            julia: 'Julia'
         };
 
         this.type = this.types.mandelbrot;
 
         this.z = {
             //TODO
-        };
-
-        this.c = {
-            R: 0,
-            i: 0.8
         };
 
         this.canvas2d = canvas2D.setSupersampling(this.supersampling);
@@ -79,6 +269,8 @@ var Mandelbrot = function () {
 
         this.renderThreads = [];
 
+        this.drawControls();
+
         //TODO Switch to non jquery listeners
         this.canvas2d.canvas.addEventListener('mousedown', function (event) {
             return _this._mousedown(event);
@@ -90,13 +282,76 @@ var Mandelbrot = function () {
         //$(this.canvas2d.canvas).on('mouseup'   , (event) => this._mouseup(event));
     }
 
-    /**
-     * Public render method.
-     * Call this to render the mandelbrot to the canvas
-     */
-
-
     _createClass(Mandelbrot, [{
+        key: 'initDefaults',
+        value: function initDefaults() {
+            this.iterations = 256;
+            this.scale = 0.5;
+            this.supersampling = 1.0; //Need to adapt screen click coordinates still
+            this.xDelta = 0;
+            this.yDelta = 0;
+            this.parallelism = 2;
+            this.heightScalar = null;
+
+            this.c = {
+                R: 0,
+                i: 0.8
+            };
+        }
+    }, {
+        key: 'switchFractal',
+        value: function switchFractal() {
+            switch (this.type) {
+                case this.types.mandelbrot:
+                    this.type = this.types.julia;
+                    this.fractalBtn.innerHTML = "Mandelbrot";
+                    this.initDefaults();
+                    break;
+                case this.types.julia:
+                    this.type = this.types.mandelbrot;
+                    this.fractalBtn.innerHTML = "Julia";
+                    this.initDefaults();
+                    break;
+            }
+            this.render();
+        }
+
+        /**
+        * Draw Controls over the render
+        * 
+        * TODO Consider adding this to Canvas 2D and making it configurable
+        * for my other projects
+        */
+
+    }, {
+        key: 'drawControls',
+        value: function drawControls() {
+            var _this2 = this;
+
+            this.controlContainer = document.createElement("div");
+            this.controlContainer.style.position = "absolute";
+            this.controlContainer.style.right = "0";
+            this.controlContainer.style.top = "0";
+            this.controlContainer.style.zindex = "100";
+
+            this.fractalBtn = document.createElement("button");
+            this.fractalBtn.innerHTML = "Julia";
+            this.fractalBtn.onclick = function () {
+                return _this2.switchFractal();
+            };
+            this.controlContainer.appendChild(this.fractalBtn);
+
+            if (this.canvas2d.container) {
+                this.canvas2d.container.appendChild(this.controlContainer);
+            }
+        }
+
+        /**
+         * Public render method.
+         * Call this to render the mandelbrot to the canvas
+         */
+
+    }, {
         key: 'render',
         value: function render() {
             if (this.width != this.canvas2d.getWidth() || this.height != this.canvas2d.getHeight()) {
@@ -137,7 +392,7 @@ var Mandelbrot = function () {
     }, {
         key: '_renderWorkers',
         value: function _renderWorkers(rConfig) {
-            var _this2 = this;
+            var _this3 = this;
 
             var workers = this.renderThreads;
             var xSkip = rConfig.xSkip;
@@ -151,11 +406,11 @@ var Mandelbrot = function () {
             for (var i = 0; i < xSkip; i++) {
                 this.renderThreads[i] = new _syntheticWebworker2.default(this._baseRender, function (e) {
                     e.data.line.map(function (intensity, idx) {
-                        _this2.canvas2d.drawBufferedPixel(_this2._pixelShader(e.data.Px, idx, intensity, _this2.shader));
+                        _this3.canvas2d.drawBufferedPixel(_this3._pixelShader(e.data.Px, idx, intensity, _this3.shader));
                     });
-                    _this2.heightScalar = e.data.heightScalar;
-                    if ( /*e.data.Px % (width*xSkip) <= 1 ||*/e.data.Px > width - xSkip - 1) _this2.canvas2d.flushBuffer();
-                    if (e.data.Px >= width - (xSkip - i)) _this2.renderThreads[i].terminate();
+                    _this3.heightScalar = e.data.heightScalar;
+                    if ( /*e.data.Px % (width*xSkip) <= 1 ||*/e.data.Px > width - xSkip - 1) _this3.canvas2d.flushBuffer();
+                    if (e.data.Px >= width - (xSkip - i)) _this3.renderThreads[i].terminate();
                 });
 
                 rConfig.xInit = i;
@@ -173,7 +428,7 @@ var Mandelbrot = function () {
     }, {
         key: '_renderDirect',
         value: function _renderDirect(rConfig) {
-            var _this3 = this;
+            var _this4 = this;
 
             rConfig.xSkip = 1;
             rConfig.xInit = 0;
@@ -182,9 +437,9 @@ var Mandelbrot = function () {
             var timeout = new Date().getTime();
             this._baseRender(conf, function (toRender) {
                 toRender.line.map(function (intensity, idx) {
-                    _this3.canvas2d.drawBufferedPixel(_this3._pixelShader(toRender.Px, idx, intensity, _this3.shader));
+                    _this4.canvas2d.drawBufferedPixel(_this4._pixelShader(toRender.Px, idx, intensity, _this4.shader));
                 });
-                _this3.heightScalar = toRender.heightScalar;
+                _this4.heightScalar = toRender.heightScalar;
                 if (new Date().getTime() - timeout > 50) {
                     timeout = new Date().getTime();
                     // setTimeout(()=>{
@@ -376,7 +631,7 @@ var Mandelbrot = function () {
 
 exports.default = Mandelbrot;
 
-},{"canvas-2d-framework":4,"synthetic-webworker":5}],2:[function(require,module,exports){
+},{"canvas-2d-framework":1,"synthetic-webworker":5}],3:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -396,7 +651,20 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function init(canvasID) {
 	//Canvas
-	var canvas2D = new _canvas2dFramework2.default();
+	var canvas2D = new _canvas2dFramework2.default({
+		containerStyle: {
+			margin: "0%",
+			width: "100vw",
+			height: "calc(100vh - 2px)",
+			position: "relative"
+		},
+		canvasStyle: {
+			margin: "0%",
+			width: "100vw",
+			height: "calc(100vh - 5px)",
+			position: "relative"
+		}
+	});
 
 	window.onload = function () {
 		var mandlBtn = document.getElementById("Mandelbrot");
@@ -430,7 +698,7 @@ function init(canvasID) {
 	};
 };
 
-},{"./Fractal.js":1,"canvas-2d-framework":4}],3:[function(require,module,exports){
+},{"./Fractal.js":2,"canvas-2d-framework":1}],4:[function(require,module,exports){
 "use strict";
 
 var _index = require("./fractal-js/index.js");
@@ -441,152 +709,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 (0, _index2.default)();
 
-},{"./fractal-js/index.js":2}],4:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-/**
- * Canvas Wrapper object to handle pixel level drawing on the HTML5 Canvas as well as manage the canvas
- * Automatically deploys a canvas to the body (for now)
- * 
- * (Now in ES6)
- * 
- * @author  James Wake (SparkX120)
- * @version 0.0.5 (2017/12)
- * @license MIT
- */
-var Canvas2D = function () {
-	function Canvas2D(config) {
-		var _this = this;
-
-		_classCallCheck(this, Canvas2D);
-
-		// //Create the Canvas and Deploy it
-		this.container = document.createElement('div');
-		this.canvas = document.createElement('canvas');
-		//this.canvas.style.border      = "1px solid black";
-		this.canvas.style.width = "100vw";
-		this.canvas.style.height = "100vh";
-		this.canvas.style.position = "absolute";
-		this.container.style.margin = "0%";
-		this.container.style.width = "100vw";
-		this.container.style.height = "100vh";
-		this.container.style.position = "relative";
-		this.context = this.canvas.getContext('2d');
-		this.container.appendChild(this.canvas);
-		this.supersampling = 1.0;
-
-		if (config && config.supersampling) this.supersampling = config.supersampling;
-
-		document.body.appendChild(this.container);
-
-		//Positioning and Scaling
-		this.rect = this.canvas.getBoundingClientRect();
-		$(window).on('resize', function (event) {
-			_this.rect = _this.canvas.getBoundingClientRect();
-			_this.canvas.width = _this.rect.width;
-			_this.canvas.height = _this.rect.height;
-			_this.width = _this.rect.width;
-			_this.height = _this.rect.height;
-			_this.buffer = _this.context.createImageData(_this.width * _this.supersampling, _this.height * _this.supersampling);
-			if (_this.resizeCB) {
-				_this.resizeCB();
-			}
-		});
-		this.canvas.width = this.rect.width;
-		this.canvas.height = this.rect.height;
-		this.width = this.rect.width;
-		this.height = this.rect.height;
-		//Persistant Pixel Image Data Object
-		this.pixelImageData = this.context.createImageData(1, 1);
-		this.buffer = this.context.createImageData(this.width, this.height);
-		console.log(this);
-		// this.pixelData = this.pixelImageData.data
-	}
-
-	_createClass(Canvas2D, [{
-		key: 'setSupersampling',
-		value: function setSupersampling(supersampling) {
-			this.supersampling = supersampling;
-			this.rect = this.canvas.getBoundingClientRect();
-			this.canvas.width = this.rect.width;
-			this.canvas.height = this.rect.height;
-			this.width = this.rect.width;
-			this.height = this.rect.height;
-			this.buffer = this.context.createImageData(this.width * this.supersampling, this.height * this.supersampling);
-			return this;
-		}
-	}, {
-		key: 'getWidth',
-		value: function getWidth() {
-			return this.width * this.supersampling;
-		}
-	}, {
-		key: 'getHeight',
-		value: function getHeight() {
-			return this.height * this.supersampling;
-		}
-
-		/**
-   * Draws a pixel to this Canvas. Note that RGBA are between 0 and 255
-   * @param  {{x: Number, y: Number, r: Number, g: Number, b: Number, a: Number}} pixel The Pixel to draw
-   */
-
-	}, {
-		key: 'drawPixel',
-		value: function drawPixel(pixel) {
-			// setTimeout(function(){
-			//console.log("this Happened", pixel.r, pixel.g, pixel.b, pixel.a);
-			this.pixelImageData.data[0] = pixel.r;
-			this.pixelImageData.data[1] = pixel.g;
-			this.pixelImageData.data[2] = pixel.b;
-			this.pixelImageData.data[3] = pixel.a;
-			this.context.putImageData(this.pixelImageData, pixel.x, pixel.y);
-			// }.bind(this),0);
-		}
-	}, {
-		key: 'drawBufferedPixel',
-		value: function drawBufferedPixel(pixel) {
-			var index = 4 * (pixel.x + pixel.y * this.width * this.supersampling) - 4;
-			this.buffer.data[index] = pixel.r;
-			this.buffer.data[index + 1] = pixel.g;
-			this.buffer.data[index + 2] = pixel.b;
-			this.buffer.data[index + 3] = pixel.a;
-		}
-	}, {
-		key: 'flushBuffer',
-		value: function flushBuffer() {
-			if (this.supersampling > 1) this.context.putImageData(this.buffer, 0, 0, 0, 0, this.width, this.height); //TODO Not functional
-			else this.context.putImageData(this.buffer, 0, 0);
-		}
-	}, {
-		key: 'clearBuffer',
-		value: function clearBuffer() {
-			this.buffer = this.context.createImageData(this.width, this.height);
-		}
-	}, {
-		key: 'drawLine',
-		value: function drawLine(line) {
-			this.context.beginPath();
-			this.context.moveTo(line.x1, line.y1);
-			this.context.lineTo(line.x2, line.y2);
-			this.context.stroke();
-		}
-	}]);
-
-	return Canvas2D;
-}();
-
-exports.default = Canvas2D;
-
-},{}],5:[function(require,module,exports){
+},{"./fractal-js/index.js":3}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -656,4 +779,4 @@ var SyntheticWorker = function () {
 
 exports.default = SyntheticWorker;
 
-},{}]},{},[3]);
+},{}]},{},[4]);
